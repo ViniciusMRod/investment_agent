@@ -1,0 +1,9 @@
+services:
+  agent:
+    build: .
+    container_name: investment_agent
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    command: ["python", "-u", "src/main.py"]

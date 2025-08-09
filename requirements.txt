@@ -1,0 +1,7 @@
+binance-connector==3.5.1
+pandas==2.2.2
+numpy==1.26.4
+python-telegram-bot==21.6
+pytz==2024.1
+sqlitedict==2.1.0
+pyyaml==6.0.2

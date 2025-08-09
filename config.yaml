@@ -1,0 +1,14 @@
+symbols:
+  base_asset: EUR         # ou USDT
+  pairs:
+    BTC: BTCEUR           # ajuste para BTCUSDT se usar USDT
+    ETH: ETHEUR
+    SOL: SOLEUR
+    BNB: BNBEUR
+
+scheduling:
+  tick_seconds: 60        # loop a cada 60s
+
+storage:
+  db_path: /app/data/state.sqlite
+  trades_csv: /app/data/trades.csv
