@@ -4,6 +4,10 @@ import yaml
 from dotenv import load_dotenv
 load_dotenv()  # carrega variáveis do .env quando rodar local
 
+cfg_path = os.getenv("CONFIG_PATH", "./config.yaml")
+with open(cfg_path, "r") as f:
+    cfg = yaml.safe_load(f)
+
 
 class Env:
     def __init__(self):

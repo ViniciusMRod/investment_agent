@@ -7,8 +7,9 @@ symbols:
     BNB: BNBEUR
 
 scheduling:
-  tick_seconds: 60        # loop a cada 60s
-
+  tick_seconds: 60        # loop a cada 60s~
+  
 storage:
-  db_path: /app/data/state.sqlite
-  trades_csv: /app/data/trades.csv
+  db_path: ./data/state.sqlite
+  trades_csv: ./data/trades.csv
+
