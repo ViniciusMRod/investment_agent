@@ -9,6 +9,10 @@ from .services.exchange import Exchange
 from .services.portfolio import PortfolioManager
 from .services.scheduler import should_run_monthly, should_run_weekly
 from .services.notifier import Notifier
+from .services.market import Market
+from .services.storage import Storage
+from .services.risk import RiskManager
+
 
 log = get_logger()
 
@@ -17,6 +21,8 @@ def main():
     tz = pytz.timezone(os.getenv("TZ", "America/Sao_Paulo"))
     ex = Exchange(env=env)
     pm = PortfolioManager(env=env, exchange=ex)
+    storage = Storage(env.DB_PATH)
+    risk = RiskManager(env=env, storage=storage, tz=tz)
     notifier = Notifier(env=env)
 
     last_run = {"dca": None, "rebalance": None}
@@ -38,6 +44,9 @@ def main():
             pm.refresh_positions()
         except Exception as e:
             log.exception("Erro ao atualizar posições: %s", e)
+            time.sleep(5)
+            continue  # <-- volta ao próximo ciclo em vez de seguir
+
 
         # DCA mensal
         try:
@@ -56,6 +65,29 @@ def main():
                 notifier.safe_send("⚖️ Rebalance semanal: " + summary)
         except Exception as e:
             log.exception("Erro no rebalance: %s", e)
+        
+        # Satélite (entradas e saídas)
+        try:
+            if env.SAT_ENABLED:
+                can, reason = risk.can_trade(pm.portfolio_value)
+                # saídas SEMPRE avaliadas (mesmo se não puder abrir novas)
+                exit_actions = pm.satellite_exit()
+                if exit_actions:
+                    notifier.safe_send("🔻 Sat exits: " + exit_actions)
+
+                if can:
+                    entry_actions = pm.satellite_entry()
+                    if entry_actions:
+                        notifier.safe_send("🔼 Sat entries: " + entry_actions)
+                        risk.count_order()
+                else:
+                    if reason == "daily_loss_cap":
+                        log.warning("Circuit breaker: daily loss cap atingido.")
+                    elif reason == "max_orders":
+                        log.warning("Circuit breaker: limite diário de ordens.")
+        except Exception as e:
+            log.exception("Erro satélite: %s", e)
+
 
         time.sleep(env.TICK_SECONDS)
 
